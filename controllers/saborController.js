@@ -1,22 +1,42 @@
 const Sabor = require("../models/saborDados.js")
 
-exports.getSabor = async (req,res) => {
+exports.getSabor = async (req, res) => {
+  try {
     const sabores = await Sabor.find()
     res.json(sabores)
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar sabores." })
+  }
 }
 
-exports.addSabor = async (req, res) => { 
-    const {name} = req.body
-    if(!name) return res.status(400).json({error: "nome é obrigatório!"})
-    
-    const saborNovo = new Sabor({name}) 
+exports.addSabor = async (req, res) => {
+  const { name, valor, description } = req.body
+
+  if (!name || !valor || !description) {
+    return res.status(400).json({ error: "Informações obrigatórias!" })
+  }
+
+  try {
+    const saborNovo = new Sabor({ name, valor, description })
     await saborNovo.save()
-    res.status(200).json(saborNovo)
+    res.status(201).json(saborNovo)
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao adicionar sabor." })
+  }
+}
+
+exports.delSabor = async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const deletado = await Sabor.findByIdAndDelete(id)
+
+    if (!deletado) {
+      return res.status(404).json({ error: "Sabor não encontrado." })
     }
 
-exports.delSabor = async (req,res) => {
-    const {id} = req.params
-    await Sabor.findByIdAndDelete(id)
     res.status(204).end()
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao remover sabor." })
+  }
 }
-
